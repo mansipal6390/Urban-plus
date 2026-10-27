@@ -1,0 +1,19 @@
+{
+  "name": "urban-pulse",
+  "version": "1.0.0",
+  "description": "Urban Pulse - AI-Powered Digital Nervous System for Cities",
+  "main": "server.py",
+  "scripts": {
+    "start": "python server.py",
+    "serve": "npx serve -l 3000 ."
+  },
+  "keywords": [
+    "smart-city",
+    "ai",
+    "iot",
+    "blockchain",
+    "civic-tech"
+  ],
+  "author": "Urban Pulse Team",
+  "license": "MIT"
+}

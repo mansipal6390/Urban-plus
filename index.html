@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Urban Pulse | AI-Powered Digital Nervous System for Cities</title>
+ 
+  <script src="https://cdn.tailwindcss.com"></script>
+ 
+  <script src="https://unpkg.com/lucide@latest"></script>
+ 
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+ 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <link rel="stylesheet" href="style.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-[#080c14] text-slate-100 min-h-screen flex flex-col selection:bg-sky-500 selection:text-white">
+
+  <!-- TOP NAVIGATION BAR -->
+  <header class="sticky top-0 z-40 bg-[#0c121e]/90 backdrop-blur-md border-b border-slate-800/80 px-4 lg:px-8 py-3">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
+      
+      <!-- Brand Logo & Motto -->
+      <div class="flex items-center gap-3 cursor-pointer" onclick="switchRole('citizen')">
+        <div class="flex items-center justify-center w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 via-cyan-500 to-emerald-400 p-[2px] shadow-lg shadow-sky-500/20">
+          <div class="w-full h-full bg-[#090d16] rounded-[10px] flex items-center justify-center">
+            <i data-lucide="activity" class="w-5 h-5 text-sky-400 animate-pulse"></i>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-black text-xl tracking-tight bg-gradient-to-r from-white via-slate-100 to-sky-300 bg-clip-text text-transparent">URBAN PULSE</span>
+            <span class="px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider bg-sky-500/10 text-sky-400 border border-sky-500/20 rounded-full">AI 2.0</span>
+          </div>
+          <p class="text-[11px] text-slate-400 hidden sm:block">Digital Nervous System for Cities &middot; <span class="text-emerald-400 font-medium">Sense &middot; Verify &middot; Predict &middot; Respond &middot; Reward</span></p>
+        </div>
+      </div>
+
+      <!-- Role Switcher (Section 2) -->
+      <div class="flex items-center bg-slate-900/90 p-1 rounded-xl border border-slate-800 text-xs font-semibold">
+        <button id="btn-role-citizen" onclick="switchRole('citizen')" class="role-tab px-3 py-1.5 rounded-lg transition-all flex items-center gap-1.5 bg-sky-500 text-white shadow-md shadow-sky-500/25">
+          <i data-lucide="user" class="w-3.5 h-3.5"></i>
+          <span class="hidden md:inline">Citizen</span>
+        </button>
+        <button id="btn-role-authority" onclick="switchRole('authority')" class="role-tab px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all flex items-center gap-1.5">
+          <i data-lucide="building-2" class="w-3.5 h-3.5"></i>
+          <span class="hidden md:inline">Authority</span>
+        </button>
+        <button id="btn-role-worker" onclick="switchRole('worker')" class="role-tab px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all flex items-center gap-1.5">
+          <i data-lucide="hard-hat" class="w-3.5 h-3.5"></i>
+          <span class="hidden md:inline">Worker</span>
+        </button>
+        <button id="btn-role-admin" onclick="switchRole('admin')" class="role-tab px-3 py-1.5 rounded-lg text-slate-400 hover:text-white transition-all flex items-center gap-1.5">
+          <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+          <span class="hidden md:inline">Admin</span>
+        </button>
+      </div>
+
+      <!-- Top Action Buttons -->
+      <div class="flex items-center gap-2">
+        <button onclick="openFullMapModal()" class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-300 bg-slate-800/80 hover:bg-slate-800 hover:text-white rounded-lg border border-slate-700/60 transition">
+          <i data-lucide="map-pin" class="w-3.5 h-3.5 text-emerald-400"></i>
+          <span>Live Map</span>
+        </button>
+
+        <button onclick="openBlockchainModal()" class="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-purple-300 bg-purple-950/40 hover:bg-purple-900/50 rounded-lg border border-purple-500/30 transition">
+          <i data-lucide="link-2" class="w-3.5 h-3.5 text-purple-400"></i>
+          <span class="hidden sm:inline">Blockchain</span>
+        </button>
+
+        <div id="header-reward-badge" class="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 text-amber-400 rounded-lg text-xs font-semibold cursor-pointer" onclick="scrollToRewards()" title="Civic Contribution Points">
+          <i data-lucide="award" class="w-3.5 h-3.5"></i>
+          <span id="user-reward-points">840</span> XP
+        </div>
+
+        <button onclick="toggleNotifications()" class="relative p-2 text-slate-400 hover:text-white bg-slate-900 rounded-lg border border-slate-800 transition">
+          <i data-lucide="bell" class="w-4 h-4"></i>
+          <span id="notif-badge" class="absolute -top-1 -right-1 w-4 h-4 bg-sky-500 text-[9px] font-black text-white rounded-full flex items-center justify-center pulse-dot">4</span>
+        </button>
+
+        <div class="flex items-center gap-2 pl-1 border-l border-slate-800">
+          <img id="user-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80" class="w-8 h-8 rounded-full ring-2 ring-sky-500/40 object-cover" alt="User Avatar">
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- NOTIFICATIONS DRAWER (Section 8) -->
+  <div id="notifications-panel" class="fixed inset-y-0 right-0 z-50 w-full max-w-sm bg-[#0d1424] border-l border-slate-800 shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out p-6 flex flex-col">
+    <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+      <div class="flex items-center gap-2">
+        <i data-lucide="bell" class="w-5 h-5 text-sky-400"></i>
+        <h3 class="font-bold text-base">Notifications</h3>
+        <span class="px-2 py-0.5 text-xs bg-sky-500/20 text-sky-400 rounded-full font-bold" id="notif-count-text">4 New</span>
+      </div>
+      <button onclick="toggleNotifications()" class="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-slate-800">
+        <i data-lucide="x" class="w-5 h-5"></i>
+      </button>
+    </div>
+    
+    <div class="flex-1 overflow-y-auto py-4 space-y-3" id="notifications-list"></div>
+
+    <div class="pt-4 border-t border-slate-800">
+      <button onclick="markAllNotificationsRead()" class="w-full py-2 bg-slate-800/80 hover:bg-slate-800 text-xs text-slate-300 font-semibold rounded-lg transition">
+        Mark All as Read
+      </button>
+    </div>
+  </div>
+
+  <!-- MAIN VIEW CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 lg:p-8">
+
+    <!-- ============================================================= -->
+    <!-- VIEW 1: CITIZEN / USER DASHBOARD (Section 3) -->
+    <!-- ============================================================= -->
+    <div id="view-citizen" class="space-y-8">
+      
+      <!-- Location Section -->
+      <div class="glass-panel p-4 sm:p-5 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-l-4 border-l-sky-500">
+        <div class="flex items-center gap-3.5">
+          <div class="w-11 h-11 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center shrink-0">
+            <i data-lucide="navigation" class="w-5 h-5 text-sky-400 animate-pulse"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="font-bold text-sm text-slate-200">Selected Ward: <span class="text-white font-extrabold">Indiranagar, Sector 4 (Bangalore Urban)</span></h2>
+              <span class="flex items-center gap-1 text-[11px] font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span> Live GPS Active
+              </span>
+            </div>
+            <p class="text-xs text-slate-400 mt-0.5">Local Civic Alert: <span class="text-amber-400 font-medium">Waterlogging Advisory active</span> &middot; 3 municipal repairs in progress</p>
+          </div>
+        </div>
+
+        <button onclick="openReportModal()" class="flex items-center justify-center gap-2 px-5 py-2.5 bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 hover:to-cyan-600 text-white font-bold text-xs rounded-xl shadow-lg shadow-sky-500/25 transition transform hover:scale-[1.02]">
+          <i data-lucide="plus-circle" class="w-4 h-4"></i>
+          <span>Report an Issue</span>
+        </button>
+      </div>
+
+      <!-- Quick Actions (Section 3.3) -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+        <button onclick="openReportModal()" class="glass-card p-4 rounded-xl flex items-center gap-3.5 text-left group hover:border-sky-500/50">
+          <div class="w-10 h-10 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center group-hover:scale-110 transition">
+            <i data-lucide="camera" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <p class="text-xs font-bold text-white group-hover:text-sky-300">Report an Issue</p>
+            <p class="text-[11px] text-slate-400">AI-verified snap</p>
+          </div>
+        </button>
+
+        <button onclick="openFullMapModal()" class="glass-card p-4 rounded-xl flex items-center gap-3.5 text-left group hover:border-emerald-500/50">
+          <div class="w-10 h-10 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center group-hover:scale-110 transition">
+            <i data-lucide="map" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <p class="text-xs font-bold text-white group-hover:text-emerald-300">View Live Map</p>
+            <p class="text-[11px] text-slate-400">Sensors & risks</p>
+          </div>
+        </button>
+
+        <button onclick="filterCitizenReports('my')" class="glass-card p-4 rounded-xl flex items-center gap-3.5 text-left group hover:border-purple-500/50">
+          <div class="w-10 h-10 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center group-hover:scale-110 transition">
+            <i data-lucide="file-text" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <p class="text-xs font-bold text-white group-hover:text-purple-300">My Reports</p>
+            <p class="text-[11px] text-slate-400">Track 7 tickets</p>
+          </div>
+        </button>
+
+        <button onclick="filterCitizenReports('nearby')" class="glass-card p-4 rounded-xl flex items-center gap-3.5 text-left group hover:border-amber-500/50">
+          <div class="w-10 h-10 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center group-hover:scale-110 transition">
+            <i data-lucide="locate-fixed" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <p class="text-xs font-bold text-white group-hover:text-amber-300">Nearby Issues</p>
+            <p class="text-[11px] text-slate-400">Verify & upvote</p>
+          </div>
+        </button>
+      </div>
+
+      
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="glass-card p-4 rounded-xl border-l-4 border-l-sky-500">
+          <div class="flex items-center justify-between">
+            <p class="text-xs font-medium text-slate-400">Active Issues Nearby</p>
+            <i data-lucide="alert-circle" class="w-4 h-4 text-sky-400"></i>
+          </div>
+          <p class="text-2xl font-black text-white mt-1" id="stat-active-nearby">14</p>
+          <p class="text-[11px] text-slate-400 mt-1 flex items-center gap-1"><span class="text-emerald-400 font-semibold">-3</span> resolved today</p>
+        </div>
+
+        <div class="glass-card p-4 rounded-xl border-l-4 border-l-red-500">
+          <div class="flex items-center justify-between">
+            <p class="text-xs font-medium text-slate-400">High Priority Issues</p>
+            <i data-lucide="flame" class="w-4 h-4 text-red-400"></i>
+          </div>
+          <p class="text-2xl font-black text-red-400 mt-1" id="stat-high-priority">3</p>
+          <p class="text-[11px] text-red-300/80 mt-1">Immediate hazards</p>
+        </div>
+
+        <div class="glass-card p-4 rounded-xl border-l-4 border-l-emerald-500">
+          <div class="flex items-center justify-between">
+            <p class="text-xs font-medium text-slate-400">Issues Resolved</p>
+            <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+          </div>
+          <p class="text-2xl font-black text-emerald-400 mt-1" id="stat-resolved-month">182</p>
+          <p class="text-[11px] text-emerald-300/80 mt-1">This month in city</p>
+        </div>
+
+        <div class="glass-card p-4 rounded-xl border-l-4 border-l-purple-500">
+          <div class="flex items-center justify-between">
+            <p class="text-xs font-medium text-slate-400">Reports Submitted by You</p>
+            <i data-lucide="user-check" class="w-4 h-4 text-purple-400"></i>
+          </div>
+          <p class="text-2xl font-black text-purple-300 mt-1" id="stat-user-reports">7</p>
+          <p class="text-[11px] text-purple-300/80 mt-1">6 AI verified &middot; 5 resolved</p>
+        </div>
+      </div>
+
+      <!-- Live Alerts (Section 3.5 & 10) -->
+      <div class="glass-panel p-5 rounded-2xl border border-amber-500/20 bg-gradient-to-r from-amber-500/5 via-transparent to-red-500/5">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="relative flex h-2.5 w-2.5">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+            </span>
+            <h3 class="font-bold text-sm text-slate-100 uppercase tracking-wide">Live City Alerts</h3>
+          </div>
+          <span class="text-[11px] text-slate-400 font-medium">IoT Sensor & AI Risk Telemetry</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3" id="live-alerts-container"></div>
+      </div>
+
+      
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+       
+        <div class="lg:col-span-2 space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-slate-800">
+            <div>
+              <h3 class="font-bold text-lg text-white flex items-center gap-2">
+                <span id="issues-section-title">Nearby Civic Issues</span>
+                <span id="issues-count-badge" class="text-xs px-2 py-0.5 rounded-full bg-slate-800 text-slate-300">14</span>
+              </h3>
+              <p class="text-xs text-slate-400">Current civic problems reported by citizens and IoT sensors</p>
+            </div>
+
+            <!-- Filter Chips -->
+            <div class="flex items-center gap-1 overflow-x-auto pb-1 text-xs">
+              <button onclick="filterCategory('all')" class="filter-chip px-2.5 py-1 rounded-lg bg-sky-500 text-white font-medium whitespace-nowrap">All</button>
+              <button onclick="filterCategory('Pothole')" class="filter-chip px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 whitespace-nowrap">Potholes</button>
+              <button onclick="filterCategory('Garbage overflow')" class="filter-chip px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 whitespace-nowrap">Garbage</button>
+              <button onclick="filterCategory('Waterlogging')" class="filter-chip px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 whitespace-nowrap">Waterlogging</button>
+              <button onclick="filterCategory('Broken streetlight')" class="filter-chip px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 whitespace-nowrap">Lighting</button>
+            </div>
+          </div>
+
+          <div id="citizen-issues-grid" class="space-y-3.5"></div>
+        </div>
+
+        <!-- Right: Map Preview (Section 3.8) & Rewards (Section 3.7 & 9) -->
+        <div class="space-y-6">
+          
+          <!-- Mini Interactive Map Preview -->
+          <div class="glass-card p-4 rounded-2xl space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <i data-lucide="map-pinned" class="w-4 h-4 text-emerald-400"></i>
+                <h4 class="font-bold text-sm text-white">Ward Map Preview</h4>
+              </div>
+              <button onclick="openFullMapModal()" class="text-xs font-semibold text-sky-400 hover:text-sky-300 flex items-center gap-1">
+                Expand <i data-lucide="maximize-2" class="w-3 h-3"></i>
+              </button>
+            </div>
+            <div id="mini-map" class="w-full h-48 rounded-xl overflow-hidden border border-slate-800 z-0"></div>
+            <p class="text-[11px] text-slate-400 flex items-center justify-between">
+              <span><i class="inline-block w-2 h-2 rounded-full bg-red-500 mr-1"></i>Critical</span>
+              <span><i class="inline-block w-2 h-2 rounded-full bg-amber-500 mr-1"></i>High</span>
+              <span><i class="inline-block w-2 h-2 rounded-full bg-emerald-500 mr-1"></i>Resolved</span>
+            </p>
+          </div>
+
+          <!-- Rewards & Recognition Card -->
+          <div id="rewards-section" class="glass-card p-5 rounded-2xl space-y-4 border border-amber-500/20 bg-gradient-to-b from-amber-500/5 to-transparent">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <i data-lucide="trophy" class="w-5 h-5 text-amber-400"></i>
+                <h4 class="font-bold text-sm text-white">My Activity & Rewards</h4>
+              </div>
+              <span class="text-[11px] bg-amber-500/10 text-amber-300 border border-amber-500/20 px-2 py-0.5 rounded-full font-bold">Active Citizen</span>
+            </div>
+
+            <div class="space-y-1.5">
+              <div class="flex justify-between text-xs">
+                <span class="text-slate-400">Civic Contribution</span>
+                <span class="text-amber-400 font-bold">840 / 1000 XP</span>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                <div class="bg-gradient-to-r from-amber-400 to-amber-500 h-2 rounded-full" style="width: 84%"></div>
+              </div>
+              <p class="text-[10px] text-slate-400">Earn 160 more XP to unlock <span class="text-white font-semibold">Community Helper</span> tier.</p>
+            </div>
+
+            <!-- Recognition Badges -->
+            <div class="grid grid-cols-4 gap-2 pt-2 border-t border-slate-800 text-center">
+              <div class="p-2 rounded-lg bg-slate-800/80 border border-slate-700/60">
+                <span class="text-xl">🌱</span>
+                <p class="text-[9px] font-bold text-emerald-400 mt-1">New</p>
+              </div>
+              <div class="p-2 rounded-lg bg-amber-500/10 border border-amber-500/30 ring-1 ring-amber-500/30">
+                <span class="text-xl">🏅</span>
+                <p class="text-[9px] font-bold text-amber-300 mt-1">Active</p>
+              </div>
+              <div class="p-2 rounded-lg bg-slate-900/50 opacity-50 border border-slate-800">
+                <span class="text-xl">🤝</span>
+                <p class="text-[9px] font-medium text-slate-500 mt-1">Helper</p>
+              </div>
+              <div class="p-2 rounded-lg bg-slate-900/50 opacity-50 border border-slate-800">
+                <span class="text-xl">👑</span>
+                <p class="text-[9px] font-medium text-slate-500 mt-1">Guardian</p>
+              </div>
+            </div>
+
+            <!-- Leaderboard -->
+            <div class="pt-2 border-t border-slate-800">
+              <h5 class="text-xs font-bold text-slate-300 mb-2.5 flex items-center justify-between">
+                <span>Citizen Leaderboard</span>
+                <span class="text-[10px] text-slate-400">Ward 112 Champions</span>
+              </h5>
+              <div class="space-y-2 text-xs" id="leaderboard-list"></div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    
+    <div id="view-authority" class="hidden space-y-8">
+      
+    
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-2xl font-black text-white">Municipal Command Center</h1>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">Municipal Officer</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-1">Review AI verification results, assign field workers, monitor IoT sensor alerts, and maintain transparent civic records.</p>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <button onclick="openFullMapModal()" class="px-3.5 py-2 text-xs font-bold bg-slate-800 hover:bg-slate-700 text-white rounded-xl border border-slate-700 flex items-center gap-2">
+            <i data-lucide="map-pin" class="w-4 h-4 text-emerald-400"></i>
+            <span>Inspect Map</span>
+          </button>
+          <button onclick="triggerSensorSimulation()" class="px-3.5 py-2 text-xs font-bold bg-sky-500/20 text-sky-300 hover:bg-sky-500/30 rounded-xl border border-sky-500/30 flex items-center gap-2">
+            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+            <span>Simulate IoT Telemetry</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- KPI Metrics -->
+      <div class="grid grid-cols-2 sm:grid-cols-5 gap-3.5">
+        <div class="glass-card p-4 rounded-xl border-l-4 border-l-blue-500">
+          <p class="text-xs font-medium text-slate-400">Total Active</p>
+          <p class="text-2xl font-black text-white mt-1" id="auth-kpi-total">14</p>
+          <p class="text-[10px] text-slate-400 mt-0.5">Open civic issues</p>
+        </div>
+        <div class="glass-card p-4 rounded-xl border-l-4 border-l-amber-500">
+          <p class="text-xs font-medium text-slate-400">Pending AI Review</p>
+          <p class="text-2xl font-black text-amber-400 mt-1" id="auth-kpi-pending">2</p>
+          <p class="text-[10px] text-amber-300/70 mt-0.5">Requires human review</p>
+        </div>
+        <div class="glass-card p-4 rounded-xl border-l-4 border-l-red-500">
+          <p class="text-xs font-medium text-slate-400">High/Critical Priority</p>
+          <p class="text-2xl font-black text-red-400 mt-1" id="auth-kpi-critical">4</p>
+          <p class="text-[10px] text-red-300/70 mt-0.5">SLA &lt; 6 hours</p>
+        </div>
+        <div class="glass-card p-4 rounded-xl border-l-4 border-l-cyan-500">
+          <p class="text-xs font-medium text-slate-400">In Progress</p>
+          <p class="text-2xl font-black text-cyan-400 mt-1" id="auth-kpi-progress">5</p>
+          <p class="text-[10px] text-cyan-300/70 mt-0.5">Worker assigned</p>
+        </div>
+        <div class="glass-card p-4 rounded-xl border-l-4 border-l-emerald-500">
+          <p class="text-xs font-medium text-slate-400">Resolved</p>
+          <p class="text-2xl font-black text-emerald-400 mt-1" id="auth-kpi-resolved">9</p>
+          <p class="text-[10px] text-emerald-300/70 mt-0.5">Recorded on blockchain</p>
+        </div>
+      </div>
+
+      <!-- Predictive Risk Detection Banner (Section 11) -->
+      <div class="glass-panel p-5 rounded-2xl border border-sky-500/30 bg-gradient-to-r from-sky-950/40 via-transparent to-purple-950/30">
+        <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+          <div class="flex items-center gap-3.5">
+            <div class="w-12 h-12 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center shrink-0">
+              <i data-lucide="cpu" class="w-6 h-6"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-bold uppercase tracking-wider text-sky-400">AI Risk Prediction Engine</span>
+                <span class="px-2 py-0.5 text-[10px] bg-red-500/20 text-red-300 rounded-full font-bold">Risk Alert</span>
+              </div>
+              <h3 class="text-sm font-bold text-white mt-0.5">Predicted Waterlogging Zone: 80 Feet Road Junction</h3>
+              <p class="text-xs text-slate-400 mt-0.5">Historical monsoon records + Live drain sensor (88% filled) predicts localized overflow within 90 minutes. Preventive pump dispatch suggested.</p>
+            </div>
+          </div>
+
+          <button onclick="assignPreventiveAction()" class="px-4 py-2 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-600 hover:to-indigo-700 text-white text-xs font-bold rounded-xl shadow-lg shadow-sky-500/20 transition whitespace-nowrap">
+            Deploy Preventive Unit
+          </button>
+        </div>
+      </div>
+
+      <!-- Issues Management Table (Section 12.2) -->
+      <div class="glass-panel rounded-2xl overflow-hidden border border-slate-800">
+        <div class="p-4 sm:p-5 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h3 class="font-bold text-base text-white">All Reported Issues</h3>
+            <p class="text-xs text-slate-400">Filter by category, location, severity, and status</p>
+          </div>
+
+          <div class="flex items-center gap-2 text-xs">
+            <input type="text" id="auth-search-input" onkeyup="searchAuthorityIssues()" placeholder="Search ID, location..." class="px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 placeholder-slate-500 focus:outline-none focus:border-sky-500">
+            <select id="auth-filter-status" onchange="searchAuthorityIssues()" class="px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-200 focus:outline-none focus:border-sky-500">
+              <option value="all">All Statuses</option>
+              <option value="Reported">Reported</option>
+              <option value="AI Verified">AI Verified</option>
+              <option value="Assigned">Assigned</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Resolved">Resolved</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs text-slate-300">
+            <thead class="bg-slate-900/80 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+              <tr>
+                <th class="p-3.5">Issue ID</th>
+                <th class="p-3.5">Evidence</th>
+                <th class="p-3.5">Category & Notes</th>
+                <th class="p-3.5">Location</th>
+                <th class="p-3.5">Severity</th>
+                <th class="p-3.5">AI Verification</th>
+                <th class="p-3.5">Assigned Worker</th>
+                <th class="p-3.5">Status</th>
+                <th class="p-3.5 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="auth-issues-table-body" class="divide-y divide-slate-800/60"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Analytics Charts (Section 12.5) -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="glass-card p-5 rounded-2xl">
+          <h4 class="font-bold text-sm text-white mb-1">Issues by Category</h4>
+          <p class="text-[11px] text-slate-400 mb-4">Distribution across types</p>
+          <div class="h-52">
+            <canvas id="chart-category"></canvas>
+          </div>
+        </div>
+
+        <div class="glass-card p-5 rounded-2xl">
+          <h4 class="font-bold text-sm text-white mb-1">Avg Turnaround Time</h4>
+          <p class="text-[11px] text-slate-400 mb-4">Hours by Department</p>
+          <div class="h-52">
+            <canvas id="chart-resolution"></canvas>
+          </div>
+        </div>
+
+        <div class="glass-card p-5 rounded-2xl">
+          <h4 class="font-bold text-sm text-white mb-1">Citizen Participation</h4>
+          <p class="text-[11px] text-slate-400 mb-4">Weekly report volume & verified rate</p>
+          <div class="h-52">
+            <canvas id="chart-participation"></canvas>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    
+    <div id="view-worker" class="hidden space-y-8">
+      
+      <!-- Worker Header -->
+      <div class="glass-panel p-5 rounded-2xl border-l-4 border-l-amber-500 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+          <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&auto=format&fit=crop&q=80" class="w-12 h-12 rounded-xl object-cover ring-2 ring-amber-500/40" alt="Worker">
+          <div>
+            <div class="flex items-center gap-2">
+              <h2 class="font-extrabold text-base text-white">Rajesh Kumar</h2>
+              <span class="px-2 py-0.5 text-[10px] bg-amber-500/20 text-amber-300 font-bold rounded-md">Field Worker</span>
+            </div>
+            <p class="text-xs text-slate-400 mt-0.5">Roads & Infrastructure &middot; <span class="text-emerald-400 font-semibold">Active on Field</span></p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-3">
+          <div class="text-right">
+            <p class="text-xs text-slate-400">Assigned Tasks</p>
+            <p class="text-lg font-black text-white" id="worker-task-count">3 Active</p>
+          </div>
+          <button onclick="openFullMapModal()" class="px-4 py-2 bg-slate-800 text-slate-200 text-xs font-bold rounded-xl border border-slate-700 flex items-center gap-2">
+            <i data-lucide="map-pin" class="w-4 h-4 text-sky-400"></i>
+            <span>Task Map</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Worker Tasks Queue -->
+      <div class="space-y-4">
+        <h3 class="font-bold text-lg text-white flex items-center gap-2">
+          <span>My Assigned Tasks</span>
+          <span class="text-xs px-2 py-0.5 bg-amber-500/20 text-amber-300 font-bold rounded-full">SLA Tracked</span>
+        </h3>
+        <div id="worker-tasks-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+      </div>
+
+    </div>
+
+    
+    <div id="view-admin" class="hidden space-y-8">
+      
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-2xl font-black text-white">Admin Dashboard & Governance</h1>
+            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">System Admin</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-1">Manage users, departments, categories, sensors, abusive reports, and audit logs.</p>
+        </div>
+
+        <button onclick="openBlockchainModal()" class="px-4 py-2 text-xs font-bold bg-purple-950/60 text-purple-300 rounded-xl border border-purple-500/40 flex items-center gap-2">
+          <i data-lucide="shield" class="w-4 h-4"></i>
+          <span>Inspect Blockchain</span>
+        </button>
+      </div>
+
+      <!-- Admin KPIs -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <div class="glass-card p-4 rounded-xl border-l-4 border-l-emerald-500">
+          <p class="text-xs font-medium text-slate-400">Platform Health</p>
+          <p class="text-xl font-bold text-emerald-400 mt-1">99.98% OK</p>
+          <p class="text-[10px] text-slate-400 mt-0.5">Latency 24ms</p>
+        </div>
+
+        <div class="glass-card p-4 rounded-xl border-l-4 border-l-sky-500">
+          <p class="text-xs font-medium text-slate-400">Connected IoT Sensors</p>
+          <p class="text-xl font-bold text-sky-400 mt-1">128 Online</p>
+          <p class="text-[10px] text-slate-400 mt-0.5">5 sensor types</p>
+        </div>
+
+        <div class="glass-card p-4 rounded-xl border-l-4 border-l-purple-500">
+          <p class="text-xs font-medium text-slate-400">Blockchain Height</p>
+          <p class="text-xl font-bold text-purple-300 mt-1">#1,482 Blocks</p>
+          <p class="text-[10px] text-emerald-400 mt-0.5">Tamper-evident</p>
+        </div>
+
+        <div class="glass-card p-4 rounded-xl border-l-4 border-l-amber-500">
+          <p class="text-xs font-medium text-slate-400">Registered Citizens</p>
+          <p class="text-xl font-bold text-amber-300 mt-1">42,590</p>
+          <p class="text-[10px] text-slate-400 mt-0.5">4 User roles</p>
+        </div>
+      </div>
+
+      <!-- Modules -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="glass-panel p-5 rounded-2xl space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+            <h3 class="font-bold text-sm text-white flex items-center gap-2">
+              <i data-lucide="users" class="w-4 h-4 text-sky-400"></i>
+              <span>Municipal Departments</span>
+            </h3>
+            <button onclick="showToast('Add Department dialog (Demo)')" class="text-xs text-sky-400 font-semibold">+ Add Dept</button>
+          </div>
+
+          <div class="space-y-2.5 text-xs">
+            <div class="flex items-center justify-between p-2.5 rounded-lg bg-slate-900/60 border border-slate-800">
+              <div>
+                <p class="font-bold text-white">Roads & Infrastructure</p>
+                <p class="text-[10px] text-slate-400">Lead: Dr. V. Murthy &middot; 24 Field Workers</p>
+              </div>
+              <span class="px-2 py-0.5 text-[10px] rounded-md bg-emerald-500/10 text-emerald-400 font-bold">Active</span>
+            </div>
+
+            <div class="flex items-center justify-between p-2.5 rounded-lg bg-slate-900/60 border border-slate-800">
+              <div>
+                <p class="font-bold text-white">Solid Waste & Sanitation</p>
+                <p class="text-[10px] text-slate-400">Lead: Sunita Rao &middot; 48 Workers</p>
+              </div>
+              <span class="px-2 py-0.5 text-[10px] rounded-md bg-emerald-500/10 text-emerald-400 font-bold">Active</span>
+            </div>
+
+            <div class="flex items-center justify-between p-2.5 rounded-lg bg-slate-900/60 border border-slate-800">
+              <div>
+                <p class="font-bold text-white">Electrical & Street Lighting</p>
+                <p class="text-[10px] text-slate-400">Lead: Anand K. &middot; 16 Technicians</p>
+              </div>
+              <span class="px-2 py-0.5 text-[10px] rounded-md bg-emerald-500/10 text-emerald-400 font-bold">Active</span>
+            </div>
+
+            <div class="flex items-center justify-between p-2.5 rounded-lg bg-slate-900/60 border border-slate-800">
+              <div>
+                <p class="font-bold text-white">Water Supply & Drainage</p>
+                <p class="text-[10px] text-slate-400">Lead: R. Hegde &middot; 19 Operators</p>
+              </div>
+              <span class="px-2 py-0.5 text-[10px] rounded-md bg-emerald-500/10 text-emerald-400 font-bold">Active</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-panel p-5 rounded-2xl space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+            <h3 class="font-bold text-sm text-white flex items-center gap-2">
+              <i data-lucide="radio" class="w-4 h-4 text-emerald-400"></i>
+              <span>Active IoT Sensors</span>
+            </h3>
+            <span class="text-[11px] text-slate-400">Live Telemetry</span>
+          </div>
+
+          <div class="space-y-2.5 text-xs" id="admin-sensor-nodes"></div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ============================================================= -->
+  <!-- MODAL 1: REPORT AN ISSUE (Section 4 & 5) -->
+  <!-- ============================================================= -->
+  <div id="modal-report" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-[#0c121e] border border-slate-800 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      
+      <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-sky-500/10 text-sky-400 flex items-center justify-center">
+            <i data-lucide="camera" class="w-4 h-4"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-base text-white">Report a Civic Issue</h3>
+            <p class="text-xs text-slate-400">AI checks image validity, estimates severity & flags duplicates</p>
+          </div>
+        </div>
+        <button onclick="closeReportModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <form id="report-form" onsubmit="handleReportSubmit(event)" class="p-6 overflow-y-auto space-y-4 flex-1">
+        
+        <!-- Category Selection -->
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1.5">Select Issue Category *</label>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs" id="category-selector-grid">
+            <label class="cursor-pointer border border-sky-500 bg-sky-500/10 p-2.5 rounded-xl flex items-center gap-2 transition hover:bg-sky-500/20">
+              <input type="radio" name="report_category" value="Pothole" checked class="hidden" onchange="updateCategorySelect(this)">
+              <span class="text-lg">🕳️</span>
+              <span class="font-medium">Pothole</span>
+            </label>
+            <label class="cursor-pointer border border-slate-800 bg-slate-900/60 p-2.5 rounded-xl flex items-center gap-2 transition hover:bg-slate-800">
+              <input type="radio" name="report_category" value="Garbage overflow" class="hidden" onchange="updateCategorySelect(this)">
+              <span class="text-lg">🗑️</span>
+              <span class="font-medium">Garbage</span>
+            </label>
+            <label class="cursor-pointer border border-slate-800 bg-slate-900/60 p-2.5 rounded-xl flex items-center gap-2 transition hover:bg-slate-800">
+              <input type="radio" name="report_category" value="Broken streetlight" class="hidden" onchange="updateCategorySelect(this)">
+              <span class="text-lg">💡</span>
+              <span class="font-medium">Streetlight</span>
+            </label>
+            <label class="cursor-pointer border border-slate-800 bg-slate-900/60 p-2.5 rounded-xl flex items-center gap-2 transition hover:bg-slate-800">
+              <input type="radio" name="report_category" value="Waterlogging" class="hidden" onchange="updateCategorySelect(this)">
+              <span class="text-lg">🌊</span>
+              <span class="font-medium">Waterlogging</span>
+            </label>
+            <label class="cursor-pointer border border-slate-800 bg-slate-900/60 p-2.5 rounded-xl flex items-center gap-2 transition hover:bg-slate-800">
+              <input type="radio" name="report_category" value="Pollution" class="hidden" onchange="updateCategorySelect(this)">
+              <span class="text-lg">🏭</span>
+              <span class="font-medium">Pollution</span>
+            </label>
+            <label class="cursor-pointer border border-slate-800 bg-slate-900/60 p-2.5 rounded-xl flex items-center gap-2 transition hover:bg-slate-800">
+              <input type="radio" name="report_category" value="Traffic" class="hidden" onchange="updateCategorySelect(this)">
+              <span class="text-lg">🚦</span>
+              <span class="font-medium">Traffic</span>
+            </label>
+            <label class="cursor-pointer border border-slate-800 bg-slate-900/60 p-2.5 rounded-xl flex items-center gap-2 transition hover:bg-slate-800">
+              <input type="radio" name="report_category" value="Noise" class="hidden" onchange="updateCategorySelect(this)">
+              <span class="text-lg">📢</span>
+              <span class="font-medium">Noise</span>
+            </label>
+            <label class="cursor-pointer border border-slate-800 bg-slate-900/60 p-2.5 rounded-xl flex items-center gap-2 transition hover:bg-slate-800">
+              <input type="radio" name="report_category" value="Other" class="hidden" onchange="updateCategorySelect(this)">
+              <span class="text-lg">⚠️</span>
+              <span class="font-medium">Other</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1">Issue Description *</label>
+          <textarea id="report-description" rows="2" required placeholder="Describe the problem (e.g. Deep asphalt crater causing traffic hazard near metro station)..." class="w-full px-3.5 py-2 text-xs bg-slate-900 border border-slate-800 rounded-xl text-slate-200 focus:outline-none focus:border-sky-500"></textarea>
+        </div>
+
+        <!-- Evidence & AI Scanner -->
+        <div>
+          <label class="block text-xs font-bold text-slate-300 mb-1">Photo Evidence *</label>
+          <div class="border-2 border-dashed border-slate-800 hover:border-sky-500/50 rounded-xl p-4 text-center bg-slate-900/40">
+            <div id="preview-upload-placeholder" class="space-y-2">
+              <i data-lucide="upload-cloud" class="w-7 h-7 text-sky-400 mx-auto"></i>
+              <p class="text-xs text-slate-300 font-semibold">Select a sample photo or upload your own</p>
+              <div class="flex flex-wrap items-center justify-center gap-2 pt-1">
+                <button type="button" onclick="selectPresetImage('pothole')" class="px-2.5 py-1 text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700">📷 Pothole</button>
+                <button type="button" onclick="selectPresetImage('garbage')" class="px-2.5 py-1 text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700">📷 Garbage</button>
+                <button type="button" onclick="selectPresetImage('waterlog')" class="px-2.5 py-1 text-[11px] bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg border border-slate-700">📷 Waterlogging</button>
+              </div>
+            </div>
+
+            <!-- Upload preview & AI Scan Box -->
+            <div id="upload-preview-box" class="hidden space-y-3">
+              <div class="relative rounded-lg overflow-hidden max-h-44 flex justify-center bg-black">
+                <img id="uploaded-img-preview" src="" class="object-contain max-h-44 rounded-lg" alt="Preview">
+                <div id="ai-scanner-overlay" class="absolute inset-0 shimmer-ai hidden border border-sky-400 flex items-center justify-center">
+                  <span class="px-3 py-1 bg-sky-900/80 text-sky-300 text-xs font-bold rounded-full border border-sky-400/40 animate-pulse">AI Neural Classifier Scanning...</span>
+                </div>
+              </div>
+
+              <!-- AI Verification Details -->
+              <div id="ai-results-pill" class="p-3 rounded-xl bg-slate-900 border border-sky-500/30 text-left text-xs space-y-1">
+                <div class="flex items-center justify-between font-bold">
+                  <span class="text-sky-400 flex items-center gap-1.5">
+                    <i data-lucide="sparkles" class="w-4 h-4"></i> AI Analysis Result
+                  </span>
+                  <span id="ai-confidence-tag" class="text-emerald-400 font-mono">96.4% Confidence</span>
+                </div>
+                <p class="text-slate-300 text-[11px]" id="ai-detected-details">Detected: Asphalt cavity &middot; Est. Depth: ~12cm &middot; Hazard level: HIGH</p>
+                <p class="text-emerald-400 text-[10px] font-semibold" id="ai-dup-check">✓ Duplicate Check: No existing reports within 200m.</p>
+              </div>
+            </div>
+            <input type="file" id="evidence-file-input" accept="image/*" class="hidden" onchange="handleFileSelection(event)">
+          </div>
+        </div>
+
+        <!-- Location Picker -->
+        <div>
+          <div class="flex items-center justify-between mb-1">
+            <label class="text-xs font-bold text-slate-300">Incident Location *</label>
+            <button type="button" onclick="useCurrentGPS()" class="text-[11px] text-sky-400 font-semibold flex items-center gap-1">
+              <i data-lucide="crosshair" class="w-3 h-3"></i> Current GPS
+            </button>
+          </div>
+          <input type="text" id="report-location-input" required value="Indiranagar 100 Ft Rd, near Metro Pillar 42" class="w-full px-3 py-2 text-xs bg-slate-900 border border-slate-800 rounded-xl text-slate-200 focus:outline-none focus:border-sky-500 mb-2">
+          <div id="picker-map" class="w-full h-36 rounded-xl border border-slate-800 z-0"></div>
+          <p class="text-[10px] text-slate-500 mt-1">Drag marker to adjust location: <span id="picker-coords" class="font-mono text-slate-400">12.9716° N, 77.5946° E</span></p>
+        </div>
+
+        <div class="pt-3 border-t border-slate-800 flex items-center justify-end gap-3">
+          <button type="button" onclick="closeReportModal()" class="px-4 py-2 text-xs text-slate-400 hover:text-white">Cancel</button>
+          <button type="submit" id="btn-submit-report" class="px-5 py-2.5 bg-gradient-to-r from-sky-500 to-cyan-500 hover:from-sky-600 text-white font-bold text-xs rounded-xl shadow-lg transition flex items-center gap-2">
+            <i data-lucide="send" class="w-4 h-4"></i>
+            <span>Submit Report (+50 XP)</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================= -->
+  <!-- MODAL 2: FULLSCREEN LIVE CITY MAP (Section 6) -->
+  <!-- ============================================================= -->
+  <div id="modal-map" class="fixed inset-0 z-50 bg-black/90 backdrop-blur-md hidden flex flex-col">
+    <div class="p-4 bg-[#0c121e] border-b border-slate-800 flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
+          <i data-lucide="map" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <h2 class="font-bold text-sm text-white">Live City Map &middot; Digital Nervous System</h2>
+          <p class="text-xs text-slate-400">Visualizing citizen reports, IoT sensor feeds, hotspots, and predicted risk zones</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2 overflow-x-auto text-xs">
+        <label class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-300 cursor-pointer">
+          <input type="checkbox" id="layer-reports" checked onchange="updateMapLayers()">
+          <span>Citizen Reports</span>
+        </label>
+        <label class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-300 cursor-pointer">
+          <input type="checkbox" id="layer-sensors" checked onchange="updateMapLayers()">
+          <span>IoT Sensors</span>
+        </label>
+        <label class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-300 cursor-pointer">
+          <input type="checkbox" id="layer-risks" checked onchange="updateMapLayers()">
+          <span>Predicted Risk Zones</span>
+        </label>
+        <label class="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 border border-slate-700 rounded-lg text-slate-300 cursor-pointer">
+          <input type="checkbox" id="layer-resolved" checked onchange="updateMapLayers()">
+          <span>Resolved</span>
+        </label>
+        <button onclick="closeFullMapModal()" class="p-2 text-slate-400 hover:text-white bg-slate-800 rounded-lg ml-2">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+    </div>
+    <div id="full-city-map" class="flex-1 w-full z-0"></div>
+  </div>
+
+  <!-- ============================================================= -->
+  <!-- MODAL 3: ISSUE TRACKING LIFECYCLE (Section 7) -->
+  <!-- ============================================================= -->
+  <div id="modal-track" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-[#0c121e] border border-slate-800 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <span id="track-category-icon" class="text-2xl">🕳️</span>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="font-black text-base text-white" id="track-issue-id">UP-2026-00125</h3>
+              <span id="track-severity-badge" class="px-2 py-0.5 text-[10px] font-bold rounded-md bg-red-500/20 text-red-400">HIGH</span>
+            </div>
+            <p class="text-xs text-slate-400" id="track-location"></p>
+          </div>
+        </div>
+        <button onclick="closeTrackModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-5 flex-1 text-xs">
+        <div>
+          <h4 class="text-xs font-bold text-slate-300 uppercase tracking-wider mb-3">Status Flow Timeline (Section 7)</h4>
+          <div class="grid grid-cols-7 gap-1 text-center font-mono text-[9px] sm:text-[10px]" id="track-stepper-container"></div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="space-y-2">
+            <p class="font-bold text-slate-300">Citizen Evidence</p>
+            <div class="h-40 rounded-xl overflow-hidden bg-black/60 border border-slate-800">
+              <img id="track-evidence-img" src="" class="w-full h-full object-cover" alt="Evidence">
+            </div>
+            <p class="text-[11px] text-slate-400" id="track-description"></p>
+          </div>
+
+          <div class="space-y-2">
+            <p class="font-bold text-slate-300">Resolution Evidence</p>
+            <div class="h-40 rounded-xl overflow-hidden bg-black/60 border border-slate-800 flex items-center justify-center text-slate-600" id="track-resolved-container">
+              <span id="track-resolved-placeholder">Pending field work...</span>
+              <img id="track-resolved-img" src="" class="w-full h-full object-cover hidden" alt="Resolved">
+            </div>
+            <p class="text-[11px] text-emerald-400" id="track-resolution-notes"></p>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-xl bg-purple-950/20 border border-purple-500/30 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="font-bold text-purple-300 flex items-center gap-1.5">
+              <i data-lucide="link-2" class="w-4 h-4"></i> Blockchain Transparency Record
+            </span>
+            <span class="text-[10px] px-2 py-0.5 bg-emerald-500/20 text-emerald-300 rounded font-bold">Verified</span>
+          </div>
+          <div class="space-y-1 font-mono text-[10px] text-slate-400">
+            <p>Tx Hash: <span id="track-tx-hash" class="text-purple-300 break-all">0x7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d9069</span></p>
+            <p>Block #: <span id="track-block-num" class="text-slate-200">#1,482</span> &middot; Recorded: <span id="track-block-time" class="text-slate-200">Today, 14:22 IST</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================= -->
+  <!-- MODAL 4: BLOCKCHAIN EXPLORER (Section 14) -->
+  <!-- ============================================================= -->
+  <div id="modal-blockchain" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-[#0c121e] border border-purple-500/30 w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div class="p-5 border-b border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center border border-purple-500/30">
+            <i data-lucide="link-2" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="font-black text-base text-white">Blockchain Transparency Layer</h3>
+              <span class="px-2 py-0.5 text-[10px] bg-emerald-500/10 text-emerald-400 rounded-full font-bold">Immutable</span>
+            </div>
+            <p class="text-xs text-slate-400">Transparent record of civic actions: created, verified, assigned, resolved</p>
+          </div>
+        </div>
+        <button onclick="closeBlockchainModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-4 flex-1 text-xs">
+        <div class="flex items-center justify-between text-slate-400 pb-2 border-b border-slate-800">
+          <span>Action Blocks (<strong class="text-white" id="chain-length-text">8</strong> Total)</span>
+          <span class="text-[11px] text-purple-400 font-mono">SHA-256 Chained Hashes</span>
+        </div>
+        <div id="blockchain-list" class="space-y-3"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================= -->
+  <!-- MODAL 5: ASSIGN WORKER (Section 12.4) -->
+  <!-- ============================================================= -->
+  <div id="modal-assign" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-[#0c121e] border border-slate-800 w-full max-w-md rounded-2xl shadow-2xl p-6 space-y-5">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <h3 class="font-bold text-base text-white flex items-center gap-2">
+          <i data-lucide="user-plus" class="w-4 h-4 text-sky-400"></i>
+          <span>Assign Ticket <span id="assign-ticket-id" class="text-sky-400"></span></span>
+        </h3>
+        <button onclick="closeAssignModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="block font-bold text-slate-300 mb-1">Department</label>
+          <select id="assign-dept-select" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200">
+            <option value="Roads & Infrastructure">Roads & Infrastructure</option>
+            <option value="Solid Waste & Sanitation">Solid Waste & Sanitation</option>
+            <option value="Electrical & Lighting">Electrical & Lighting</option>
+            <option value="Water Supply & Drainage">Water Supply & Drainage</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-300 mb-1">Field Worker</label>
+          <select id="assign-worker-select" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200">
+            <option value="Rajesh Kumar">Rajesh Kumar (Roads Engineer)</option>
+            <option value="Vikram Singh">Vikram Singh (Sanitation Lead)</option>
+            <option value="Pooja Sharma">Pooja Sharma (Lighting Tech)</option>
+            <option value="Deepak Verma">Deepak Verma (Drainage Tech)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-bold text-slate-300 mb-1">Priority & Target Time</label>
+          <select id="assign-priority-select" class="w-full px-3 py-2 bg-slate-900 border border-slate-700 rounded-lg text-slate-200">
+            <option value="High (Within 12 hours)" selected>High (Within 12 hours)</option>
+            <option value="Critical (Within 4 hours)">Critical (Within 4 hours)</option>
+            <option value="Medium (Within 24 hours)">Medium (Within 24 hours)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-slate-800 flex justify-end gap-2">
+        <button onclick="closeAssignModal()" class="px-4 py-2 text-xs text-slate-400 hover:text-white">Cancel</button>
+        <button onclick="confirmAssignment()" class="px-5 py-2 bg-sky-500 hover:bg-sky-600 text-white font-bold text-xs rounded-xl">Dispatch Worker</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================= -->
+  <!-- MODAL 6: RESOLVE TICKET (Section 13.3) -->
+  <!-- ============================================================= -->
+  <div id="modal-resolve" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-[#0c121e] border border-slate-800 w-full max-w-lg rounded-2xl shadow-2xl p-6 space-y-5">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <h3 class="font-bold text-base text-white flex items-center gap-2">
+          <i data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+          <span>Complete Task <span id="resolve-ticket-id" class="text-sky-400"></span></span>
+        </h3>
+        <button onclick="closeResolveModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <div>
+          <label class="block font-bold text-slate-400 mb-1">Original Citizen Photo</label>
+          <div class="h-28 rounded-lg overflow-hidden bg-black/40 border border-slate-800">
+            <img id="resolve-before-img" src="" class="w-full h-full object-cover" alt="Before">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-300 mb-1">Upload After Photo *</label>
+          <div class="p-3 border border-dashed border-slate-700 rounded-xl bg-slate-900/60 text-center cursor-pointer hover:border-emerald-500 transition" onclick="selectSampleResolvedPhoto()">
+            <div id="resolve-upload-placeholder" class="space-y-1">
+              <i data-lucide="camera" class="w-5 h-5 text-emerald-400 mx-auto"></i>
+              <p class="text-slate-300 font-semibold">Click to attach completion photo</p>
+            </div>
+            <img id="resolve-after-preview" src="" class="max-h-32 mx-auto rounded-lg hidden" alt="After">
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-slate-300 mb-1">Resolution Notes</label>
+          <textarea id="resolve-notes-input" rows="2" class="w-full px-3 py-2 bg-slate-900 border border-slate-800 rounded-xl text-slate-200 focus:outline-none focus:border-emerald-500">Cold mix asphalt patched and roller compacted. Road cleared for traffic.</textarea>
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-slate-800 flex justify-end gap-2">
+        <button onclick="closeResolveModal()" class="px-4 py-2 text-xs text-slate-400 hover:text-white">Cancel</button>
+        <button onclick="submitResolutionToBlockchain()" class="px-5 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-bold text-xs rounded-xl flex items-center gap-2">
+          <i data-lucide="award" class="w-4 h-4"></i>
+          <span>Commit to Blockchain</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION POPUP -->
+  <div id="toast-box" class="fixed bottom-5 right-5 z-50 flex items-center gap-3 px-4 py-3 bg-slate-900/95 border border-sky-500/40 text-white rounded-xl shadow-2xl transition-all duration-300 transform translate-y-20 opacity-0 pointer-events-none text-xs font-semibold">
+    <i data-lucide="info" id="toast-icon" class="w-4 h-4 text-sky-400"></i>
+    <span id="toast-message">Notification</span>
+  </div>
+
+  <!-- App Script -->
+  <script src="app.js"></script>
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>
